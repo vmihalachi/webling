@@ -100,7 +100,7 @@ public sealed class PublicCachingTests
             app.MapGet("/missing", (HttpContext context) => Shared(context, StatusCodes.Status404NotFound));
             app.MapGet("/sets-cookie", (HttpContext context) =>
             {
-                context.Response.Cookies.Append("visit", "1");
+                context.Response.Cookies.Append("visit", "1", new CookieOptions { Secure = true });
                 return Shared(context, StatusCodes.Status200OK);
             });
             app.MapGet("/no-store", (HttpContext context) =>
