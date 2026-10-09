@@ -14,9 +14,19 @@ output="$sample/wwwroot/css/app.css"
 
 dotnet pack src/Webling.Tailwind/Webling.Tailwind.csproj -c Release -o "$work/feed" -p:WeblingVersion="$version" --nologo -v q
 rm -rf "${sample:?}/bin" "${sample:?}/obj" "${sample:?}/wwwroot"
-dotnet build "$sample" --nologo -v q \
-  --source "$work/feed" --source https://api.nuget.org/v3/index.json \
-  -p:WeblingTailwindVersion="$version" -p:RestorePackagesPath="$work/packages"
+# A config file rather than --source arguments: Git Bash on Windows rewrites a URL argument into a path.
+cat > "$work/nuget.config" <<CONFIG
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <clear />
+    <add key="sample" value="$work/feed" />
+    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+  </packageSources>
+</configuration>
+CONFIG
+dotnet restore "$sample" --configfile "$work/nuget.config" -p:WeblingTailwindVersion="$version" -p:RestorePackagesPath="$work/packages"
+dotnet build "$sample" --nologo -v q --no-restore -p:WeblingTailwindVersion="$version" -p:RestorePackagesPath="$work/packages"
 
 [ -s "$output" ] || { echo "Tailwind wrote no $output"; exit 1; }
 for class in text-brand text-4xl font-semibold; do
